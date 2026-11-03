@@ -1,0 +1,28 @@
+# Optional: start the lab at boot and shut it down cleanly at poweroff.
+#
+# Install (adjust the paths and user first):
+#   sudo cp lab.service /etc/systemd/system/lab.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now lab.service
+#
+# The '+' prefix runs net.sh as root even though the service itself runs as your user.
+[Unit]
+Description=QEMU homelab (network + VMs)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=<YOUR_USER>
+Group=kvm
+Environment=LAB_USER=<YOUR_USER>
+ExecStartPre=+/home/<YOUR_USER>/homelab/scripts/qemu/net.sh up
+ExecStart=/home/<YOUR_USER>/homelab/scripts/qemu/lab.sh start all
+ExecStop=/home/<YOUR_USER>/homelab/scripts/qemu/lab.sh stop all
+ExecStopPost=+/home/<YOUR_USER>/homelab/scripts/qemu/net.sh down
+TimeoutStartSec=600
+TimeoutStopSec=600
+
+[Install]
+WantedBy=multi-user.target
